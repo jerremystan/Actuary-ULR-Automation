@@ -1,0 +1,214 @@
+Private Const ValDate = "202412"
+Private Const Alamat = "D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Master\"
+Private Const OriDev = 61
+
+
+Sub TriangleFinal()
+
+Application.ScreenUpdating = False
+Application.DisplayAlerts = False
+
+Dim OldF As String
+Dim NewF As String
+Dim FrontF As String
+Dim EndF As String
+Dim fileArr As Variant
+Dim PropArr As Variant
+Dim RepArr As Variant
+Dim wbR As Workbook
+Dim wbP As Workbook
+Dim wbRn As Workbook
+Dim wb As Workbook
+Dim ws As Worksheet
+
+'TIMER
+Dim startTime As Date
+Dim endTime As Date
+Dim elapsedTime As Double
+Dim formattesdTime As String
+startTime = Now
+
+
+fileArr = Array("OSClaim-Gross", "OSClaim-Net", "PaidClaim-Gross", "PaidClaim-Net")
+'FileArr = Array("OSClaim-Net")
+
+SheetArr = Array("Fire", "PA-Retail", "PA-Commercial", "Travel-Commercial", "Travel-Retail", "Trade Credit", "Various")
+PropArr = Array("PA-Retail", "PA-Commercial", "Travel-Commercial", "Travel-Retail", "Various")
+
+'Liability
+
+For Each file In fileArr
+    
+    Application.Calculation = xlCalculationManual
+
+    Set wb = Workbooks.Open(Alamat & file & ".xlsx", UpdateLinks:=0)
+    Set wbR = Workbooks.Open(Alamat & file & ".Raw.xlsx", UpdateLinks:=0)
+    Set wbP = Workbooks.Open(Alamat & file & ".Prior.xlsx", UpdateLinks:=0)
+    
+    If file = "OSClaim-Gross" Then
+        
+        Set wbRn = Workbooks.Open(Alamat & "OSClaim-Net" & ".Raw.xlsx", UpdateLinks:=0)
+    
+    ElseIf file = "PaidClaim-Gross" Then
+        
+        Set wbRn = Workbooks.Open(Alamat & "PaidClaim-Net" & ".Raw.xlsx", UpdateLinks:=0)
+    
+    End If
+    
+    
+    For Each Sheet In SheetArr
+        
+        Set ws = wb.Sheets(Sheet)
+        
+        For i = 1 To 41
+            
+            For j = 1 To 41 + 1 - i
+                Debug.Print file & Sheet & i & j
+                OldF = ws.Cells(i + 1, j + 2).Formula
+                NewF = Replace(OldF, "'[OSClaim-Gross.Raw.xlsx", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Gross.Raw.xlsx")
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Gross.Raw.xlsx]PA-XL", "'[OSClaim-Gross.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, j + 2).Formula = NewF
+                
+                OldF = ws.Cells(i + 1, j + 2).Formula
+                NewF = Replace(OldF, "'[OSClaim-Net.Raw.xlsx", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Net.Raw.xlsx")
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Net.Raw.xlsx]PA-XL", "'[OSClaim-Net.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, j + 2).Formula = NewF
+                
+                OldF = ws.Cells(i + 1, j + 2).Formula
+                NewF = Replace(OldF, "'[PaidClaim-Gross.Raw.xlsx", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Gross.Raw.xlsx")
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Gross.Raw.xlsx]PA-XL", "'[PaidClaim-Gross.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, j + 2).Formula = NewF
+                
+                OldF = ws.Cells(i + 1, j + 2).Formula
+                NewF = Replace(OldF, "'[PaidClaim-Net.Raw.xlsx", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Net.Raw.xlsx")
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Net.Raw.xlsx]PA-XL", "'[PaidClaim-Net.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, j + 2).Formula = NewF
+            
+            Next j
+            
+        Next i
+        
+    Next Sheet
+    
+    Set ws = wb.Sheets("Liability")
+    For i = 1 To 41
+        
+        For j = 1 To 41 + 1 - i
+            Debug.Print file & "Liability" & i & j
+            OldF = ws.Cells(i + 1, j + 2).Formula
+            NewF = Replace(OldF, "('[OSClaim-Gross.Raw.xlsx", "('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Gross.Raw.xlsx")
+            NewF = Replace(NewF, "+ '[OSClaim-Gross.Raw.xlsx", "+ '\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Gross.Raw.xlsx")
+            NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Gross.Raw.xlsx]PA-XL", "'[OSClaim-Gross.Raw.xlsx]PA-XL")
+            ws.Cells(i + 1, j + 2).Formula = NewF
+            
+            OldF = ws.Cells(i + 1, j + 2).Formula
+            NewF = Replace(OldF, "('[OSClaim-Net.Raw.xlsx", "('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Net.Raw.xlsx")
+            NewF = Replace(NewF, "+ '[OSClaim-Net.Raw.xlsx", "+ '\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Net.Raw.xlsx")
+            NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Net.Raw.xlsx]PA-XL", "'[OSClaim-Net.Raw.xlsx]PA-XL")
+            ws.Cells(i + 1, j + 2).Formula = NewF
+            
+            OldF = ws.Cells(i + 1, j + 2).Formula
+            NewF = Replace(OldF, "('[PaidClaim-Gross.Raw.xlsx", "('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Gross.Raw.xlsx")
+            NewF = Replace(NewF, "+ '[PaidClaim-Gross.Raw.xlsx", "+ '\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Gross.Raw.xlsx")
+            NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Gross.Raw.xlsx]PA-XL", "'[PaidClaim-Gross.Raw.xlsx]PA-XL")
+            ws.Cells(i + 1, j + 2).Formula = NewF
+            
+            OldF = ws.Cells(i + 1, j + 2).Formula
+            NewF = Replace(OldF, "('[PaidClaim-Net.Raw.xlsx", "('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Net.Raw.xlsx")
+            NewF = Replace(NewF, "+ '[PaidClaim-Net.Raw.xlsx", "+ '\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Net.Raw.xlsx")
+            NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Net.Raw.xlsx]PA-XL", "'[PaidClaim-Net.Raw.xlsx]PA-XL")
+            ws.Cells(i + 1, j + 2).Formula = NewF
+        
+        Next j
+            
+    Next i
+    
+    For Each Sheet In PropArr
+        
+        Set ws = wb.Sheets(Sheet)
+        
+        For i = 1 To OriDev
+        
+            For j = 1 To OriDev - 41
+                Debug.Print file & Sheet & i & j
+                
+                OldF = ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula
+                FrontF = Mid(OldF, 1, 55)
+                EndF = Mid(OldF, 56, Len(OldF))
+                NewF = Replace(EndF, "'[OSClaim-Gross.Raw.xlsx]", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Gross.Raw.xlsx]")
+                NewF = FrontF & NewF
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Gross.Raw.xlsx]PA-XL", "'[OSClaim-Gross.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula = NewF
+                
+                OldF = ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula
+                FrontF = Mid(OldF, 1, 55)
+                EndF = Mid(OldF, 56, Len(OldF))
+                NewF = Replace(EndF, "'[OSClaim-Net.Raw.xlsx]", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Net.Raw.xlsx]")
+                NewF = FrontF & NewF
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[OSClaim-Net.Raw.xlsx]PA-XL", "'[OSClaim-Net.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula = NewF
+                
+                OldF = ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula
+                FrontF = Mid(OldF, 1, 55)
+                EndF = Mid(OldF, 56, Len(OldF))
+                NewF = Replace(EndF, "'[PaidClaim-Gross.Raw.xlsx]", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Gross.Raw.xlsx]")
+                NewF = FrontF & NewF
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Gross.Raw.xlsx]PA-XL", "'[PaidClaim-Gross.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula = NewF
+                
+                OldF = ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula
+                FrontF = Mid(OldF, 1, 55)
+                EndF = Mid(OldF, 56, Len(OldF))
+                NewF = Replace(EndF, "'[PaidClaim-Net.Raw.xlsx]", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Net.Raw.xlsx]")
+                NewF = FrontF & NewF
+                NewF = Replace(NewF, "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[PaidClaim-Net.Raw.xlsx]PA-XL", "'[PaidClaim-Net.Raw.xlsx]PA-XL")
+                ws.Cells(i + 1, Application.Max(44 + j - i, 3)).Formula = NewF
+                
+            Next j
+        
+        Next i
+    
+    Next Sheet
+        
+    Application.Calculation = xlCalculationAutomatic
+    
+    wb.Save
+    wb.Close SaveChanges:=False
+    wbR.Close SaveChanges:=False
+    wbP.Close SaveChanges:=False
+    
+    If file = "OSClaim-Gross" Or file = "PaidClaim-Gross" Then
+        
+        wbRn.Close SaveChanges:=False
+        
+    End If
+    
+Next file
+
+Application.ScreenUpdating = True
+Application.DisplayAlerts = True
+
+'end time
+endTime = Now
+'elapsed time
+elapsedTime = DateDiff("s", startTime, endTime)
+formattedTime = FormatTime(elapsedTime)
+
+MsgBox "Done!" & vbCrLf & "Running time: " & formattedTime
+
+End Sub
+
+Private Function FormatTime(ByVal seconds As Double) As String
+    Dim hours As Long
+    Dim minutes As Long
+    Dim remainingSeconds As Long
+    
+    ' Calculate hours, minutes, and remaining seconds
+    hours = seconds \ 3600
+    seconds = seconds Mod 3600
+    minutes = seconds \ 60
+    remainingSeconds = seconds Mod 60
+    
+    ' Format the time as "hour:minute:second"
+    FormatTime = Format(hours, "00") & ":" & Format(minutes, "00") & ":" & Format(remainingSeconds, "00")
+End Function
