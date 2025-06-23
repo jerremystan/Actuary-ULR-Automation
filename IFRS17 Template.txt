@@ -1,0 +1,432 @@
+Private Const YearStart = 2009
+Private Const YearEnd = 2024
+Private Const c_ = "202412 v.8.00 - RCH"
+Private Const c_Projects = "202412"
+Private Const c_User = "Master"
+Private Const ValDate = "202412"
+Private Const c_Pass = ""
+'Private Const Alamat = "D:\Stanley\Tugas IFRS17\ IBNR Preparation IFRS17 R\Compiled IFRS17\202406"
+Private Const oriDev = 61
+
+
+
+Sub MacroTemplate()
+Application.DisplayAlerts = False
+    SwitchOff (True)
+    
+    Dim rsSheetsG As ADODB.Recordset
+    Dim rsSheetsN As ADODB.Recordset
+    Dim resQ As New ResQApplication
+    Dim projectResQ As xResQProject
+    Dim reservingClassResQ1 As xReservingClass
+    Dim reservingClassResQ2 As xReservingClass
+    Dim ResTa As xReservingClass
+    Dim ResSo As xReservingClass
+    Dim reservingClassTemp As xReservingClassTemplate
+    Dim linkRow As Integer
+    Dim resRow As Integer
+    Dim lastRow As Long
+    Dim DFMPT As xDFMMethod
+    Dim DFMPS As xDFMMethod
+    Dim DFMIT As xDFMMethod
+    Dim DFMIS As xDFMMethod
+    Dim SelUlt As xResultSelection
+    Dim sheetName As String
+    Dim ArrayGN As Variant
+    Dim PatName As String
+    
+    Dim wbMod As Workbook
+    Dim wbPCGrs As Workbook
+    Dim wbPCNet As Workbook
+    Dim wbOSGrs As Workbook
+    Dim wbOSNet As Workbook
+    Dim newWorkbook As Workbook
+    Dim linkWorkbook As Workbook
+    
+    Dim masterSheet As Worksheet
+    Dim newSheet As Worksheet
+    Dim wsEP As Worksheet
+    Dim wsPCGrs As Worksheet
+    Dim wsPCNet As Worksheet
+    Dim wsOSGrs As Worksheet
+    Dim wsOSNet As Worksheet
+    Dim wsLink As Worksheet
+    Dim wsLinkG As Worksheet
+    Dim wsLinkN As Worksheet
+    
+    Dim wsRes As Worksheet
+    
+    Dim SavePath As String
+    
+    'timer
+    Dim startTime As Date
+    Dim endTime As Date
+    Dim elapsedTime As Double
+    Dim formattedTime As String
+    startTime = Now
+    
+    'Looping Folder
+    
+    
+    Set wbMod = Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\02.  RR 2024 (Data as at December 2024) v.15.00.xlsm", UpdateLinks:=0)
+   
+    
+    Call resQ.ConnectByName(c_, c_User, c_Pass)
+    Set projectResQ = resQ.Projects(c_Projects)
+    
+    Set ListR = ReservingList
+    
+
+'ArrayGN = Array("Gross Attritional", "Gross Large Losses", "Non XL RI Attritional Losses", "Non XL RI Large Losses", "XL RI")
+ArrayGN = Array("Non XL RI")
+'ArrayGN = Array("Gross", "Net", "Net-wo-XL")
+
+For Each GN In ArrayGN
+
+    ListR.MoveFirst
+
+    Do While Not ListR.EOF
+        If ListR.Fields("Sheet Name CL").Value <> "Auto" Then
+            
+            If Left(GN, 5) = "Gross" Then
+            
+                sheetName = ListR.Fields("Sheet Name CL").Value & "_Grs"
+                PatName = "Gross"
+        
+            Else
+            
+                sheetName = ListR.Fields("Sheet Name CL").Value & "_Net"
+                PatName = "Net"
+            
+            End If
+            
+        ElseIf ListR.Fields("Sheet Name CL").Value = "Auto" Then
+            
+            If Left(GN, 5) = "Gross" Then
+            
+                sheetName = ListR.Fields("Sheet Name CL").Value & "_Gross"
+                PatName = "Gross"
+        
+            Else
+            
+                sheetName = ListR.Fields("Sheet Name CL").Value & "_Net"
+                PatName = "Net"
+            
+            End If
+            
+        End If
+        
+        Debug.Print GN & "-" & sheetName
+        
+        Set wsRes = wbMod.Worksheets(sheetName)
+        
+        Set ResTa = projectResQ.ReservingClasses(GN & ListR.Fields("ResQ Path").Value)
+        Set ResSo = projectResQ.ReservingClasses(PatName & ListR.Fields("ResQ Path").Value)
+
+        'DFM PAID Custom AVG
+
+        Set DFMPT = ResTa.Vectors("DFM Paid Claims Ultimate").Method
+        Set DFMPS = ResSo.Vectors("DFM Paid Claims Ultimate").Method
+
+'        DFMPT.CustomAverages(1).PeriodsIncluded = 2
+'        DFMPT.CustomAverages(2).PeriodsIncluded = 4
+'        DFMPT.CustomAverages(3).PeriodsIncluded = 8
+'        DFMPT.CustomAverages(4).PeriodsIncluded = 12
+'        DFMPT.CustomAverages(5).PeriodsIncluded = 0
+        DFMPT.CustomAverages(6).AverageType = atPattern
+        DFMPT.CustomAverages(6).Name = "DFM Paid Claims Ultimate"
+        Call DFMPT.LoadMethod(DFMPS)
+        With DFMPT.RatioUserPattern(6)
+
+            .Pattern = ResSo.Vectors.Item("DFM Paid Claims Ultimate")
+            .LiveLink = True
+
+        End With
+'        DFMPT.CustomAverages(7).AverageType = atPriorAnalysis
+'        DFMPT.CustomAverages(8).AverageType = atUserEntry
+
+
+        DFMPT.Save
+
+
+        'DFM Incurred
+
+        Set DFMIT = ResTa.Vectors("DFM Incurred Claims Ultimate").Method
+        Set DFMIS = ResSo.Vectors("DFM Incurred Claims Ultimate").Method
+
+'        DFMIT.CustomAverages(1).PeriodsIncluded = 2
+'        DFMIT.CustomAverages(2).PeriodsIncluded = 4
+'        DFMIT.CustomAverages(3).PeriodsIncluded = 8
+'        DFMIT.CustomAverages(4).PeriodsIncluded = 12
+'        DFMIT.CustomAverages(5).PeriodsIncluded = 0
+        DFMIT.CustomAverages(6).AverageType = atPattern
+        DFMIT.CustomAverages(6).Name = "DFM Incurred Claims Ultimate"
+        Call DFMIT.LoadMethod(DFMIS)
+        With DFMIT.RatioUserPattern(6)
+
+            .Pattern = ResSo.Vectors.Item("DFM Incurred Claims Ultimate")
+            .LiveLink = True
+
+        End With
+'        DFMIT.CustomAverages(7).AverageType = atPriorAnalysis
+'        DFMIT.CustomAverages(8).AverageType = atUserEntry
+
+
+        DFMIT.Save
+
+
+        'IELR
+
+
+        ResTa.Vectors("IELR").Calculated = True
+        ResTa.Vectors("IELR").CalculateAtDisplayLength = True
+        ResTa.Vectors("IELR").Formula = wsRes.Cells(40, 12)
+        ResTa.Vectors("IELR").Save
+
+        
+        'RESULT SELECTION
+        
+        
+        
+        Set SelUlt = ResTa.Vectors("Selected Claim Amounts Ultimate").Method
+
+        For i = 1 To SelUlt.OriginCount
+            
+            If DFMIT.CumulativePattern(i) > 0.9 Then
+            
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("DFM Paid Claims Ultimate")), SelUlt.OriginCount + 1 - i) = 0
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("DFM Incurred Claims Ultimate")), SelUlt.OriginCount + 1 - i) = 1
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Expected Loss Reserve")), SelUlt.OriginCount + 1 - i) = 0
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Paid B-F")), SelUlt.OriginCount + 1 - i) = 0
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Incurred B-F")), SelUlt.OriginCount + 1 - i) = 0
+                
+            Else
+                
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("DFM Paid Claims Ultimate")), SelUlt.OriginCount + 1 - i) = 0
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("DFM Incurred Claims Ultimate")), SelUlt.OriginCount + 1 - i) = 0
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Expected Loss Reserve")), SelUlt.OriginCount + 1 - i) = 0
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Paid B-F")), SelUlt.OriginCount + 1 - i) = 0
+                SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Incurred B-F")), SelUlt.OriginCount + 1 - i) = 1
+                
+            End If
+
+        Next i
+        
+        SelUlt.Save
+
+'        For i = 1 To 24
+'
+'            SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("DFM Paid Claims Ultimate")), OriDev + 1 - i) = wsRes.Cells(82 - i, 15)
+'            SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("DFM Incurred Claims Ultimate")), OriDev + 1 - i) = wsRes.Cells(82 - i, 16)
+'            SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Expected Loss Reserve")), OriDev + 1 - i) = wsRes.Cells(82 - i, 17)
+'            SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Paid B-F")), OriDev + 1 - i) = wsRes.Cells(82 - i, 18)
+'            SelUlt.Weights(SelUlt.DatasetIndex(ResTa.Vectors("Incurred B-F")), OriDev + 1 - i) = wsRes.Cells(82 - i, 19)
+'
+'        Next i
+'
+'        SelUlt.Save
+        
+        ListR.MoveNext
+    
+    Loop
+    
+Next GN
+    
+    'wbMod.Close (SaveChanges = False)
+    
+    resQ.Disconnect
+    
+    
+        
+        
+        
+    'end time
+    endTime = Now
+    'elapsed time
+    elapsedTime = DateDiff("s", startTime, endTime)
+    formattedTime = FormatTime(elapsedTime)
+    
+    MsgBox "Done!" & vbCrLf & "Running time: " & formattedTime
+    
+    SwitchOff (False)
+Application.DisplayAlerts = True
+End Sub
+Private Function RunFolder() As ADODB.Recordset
+
+    Dim rs As ADODB.Recordset
+    Dim i As Integer
+    Dim j As Variant
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "FolderName", adVarChar, 200
+        .Open
+        
+        j = Array("LT", "ST") 'Harus ST LT
+        For Each STLT In j
+            For i = YearStart To YearEnd
+                .AddNew
+                .Fields("FolderName").Value = CStr(i) & "-" & CStr(STLT)
+                .Update
+            Next i
+        Next STLT
+        
+    End With
+    
+    Set RunFolder = rs
+
+End Function
+
+Private Function ReservingList() As ADODB.Recordset
+    Dim rs As ADODB.Recordset
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "Sheet Name CL", adVarChar, 200
+        .Fields.Append "ResQ Path", adVarChar, 200
+        .Open
+        
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-OD PartialLoss Comb"
+'        .Fields("ResQ Path").Value = "\Auto\OD\Partial Loss"
+'        .Update
+'
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-OD TotLoss_Mcycle"
+'        .Fields("ResQ Path").Value = "\Auto\OD\Total Loss\Motorcycle"
+'        .Update
+'
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-OD TotLoss_Non-Mcycle"
+'        .Fields("ResQ Path").Value = "\Auto\OD\Total Loss\Non Motorcycle"
+'        .Update
+'
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-TP"
+'        .Fields("ResQ Path").Value = "\Auto\TP"
+'        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto"
+        .Fields("ResQ Path").Value = "\Auto"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Eng-All"
+        .Fields("ResQ Path").Value = "\Engineering"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Fire-All"
+        .Fields("ResQ Path").Value = "\Fire"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-Other"
+        .Fields("ResQ Path").Value = "\Marine\Non E-Commerce"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-ECommerce"
+        .Fields("ResQ Path").Value = "\Marine\E-Commerce"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Liability-All"
+        .Fields("ResQ Path").Value = "\Liability"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Retail"
+        .Fields("ResQ Path").Value = "\PA\Retail"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Commercial"
+        .Fields("ResQ Path").Value = "\PA\Commercial"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Commercial"
+        .Fields("ResQ Path").Value = "\Travel\Commercial"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Retail"
+        .Fields("ResQ Path").Value = "\Travel\Retail"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "TradeCredit-All"
+        .Fields("ResQ Path").Value = "\Trade Credit"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various-All"
+        .Fields("ResQ Path").Value = "\Various\Non E-Commerce"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Health-All"
+        .Fields("ResQ Path").Value = "\Health"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various-ECommerce"
+        .Fields("ResQ Path").Value = "\Various\Commerce"
+        .Update
+        
+    End With
+    
+    Set ReservingList = rs
+End Function
+
+Private Function FormatTime(ByVal seconds As Double) As String
+    Dim hours As Long
+    Dim minutes As Long
+    Dim remainingSeconds As Long
+    
+    ' Calculate hours, minutes, and remaining seconds
+    hours = seconds \ 3600
+    seconds = seconds Mod 3600
+    minutes = seconds \ 60
+    remainingSeconds = seconds Mod 60
+    
+    ' Format the time as "hour:minute:second"
+    FormatTime = Format(hours, "00") & ":" & Format(minutes, "00") & ":" & Format(remainingSeconds, "00")
+End Function
+Private Sub SwitchOff(bSwitchOff As Boolean)
+    Dim ws As Worksheet
+    
+    With Application
+        If bSwitchOff Then
+            'OFF
+            .Calculation = xlCalculationManual
+            .ScreenUpdating = False
+            .EnableAnimations = False
+         
+            'switch off display pagebreaks for all worksheets
+            For Each ws In ThisWorkbook.Worksheets
+                ws.DisplayPageBreaks = False
+            Next ws
+        Else
+            'ON
+            .Calculation = xlCalculationAutomatic
+            .ScreenUpdating = True
+            .EnableAnimations = True
+        End If
+    End With
+End Sub
+
+
+
+
+
+
+
+
+
