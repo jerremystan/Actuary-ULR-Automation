@@ -1,0 +1,179 @@
+Private Const ValDate = "202412"
+Private Const GrRe = "Reins" 'Gross or Reins
+Private Const Extent = "XL"
+Private Const SavePath = "C:\Stanley\Tugas IFRS17\Reserving RCH Enhancement\" & ValDate & "\" & GrRe & " " & Extent & "\"
+Private Const Coh_Start = 2020
+Private Const Coh_End = 2025
+
+
+Sub SaveAsCSVEP()
+
+    Application.ScreenUpdating = False
+    'Application.DisplayAlerts = False
+    'Application.Calculation = xlCalculationManual
+    
+    Dim wb As Workbook
+    Dim Path As ADODB.Recordset
+    Dim filePathAll As String
+    Dim wbEP As Workbook
+    Dim wbEPMan As Workbook
+    Dim wbEPPri As Workbook
+    Dim wbEPRaw As Workbook
+    Dim wbEPFS As Workbook
+    Dim wbEPRat As Workbook
+    Dim wbEPX As Workbook
+    Dim wbOSGPR As Workbook
+    Dim wbOSGRat As Workbook
+    Dim wbOSGRaw As Workbook
+    Dim wbOSGRawTo As Workbook
+    Dim wbOSG As Workbook
+    Dim wbOSNPR As Workbook
+    Dim wbOSNRat As Workbook
+    Dim wbOSNRaw As Workbook
+    Dim wbOSNRawTo As Workbook
+    Dim wbOSN As Workbook
+    Dim wbOSNX As Workbook
+    Dim wbPGPR As Workbook
+    Dim wbPGRat As Workbook
+    Dim wbPGRaw As Workbook
+    Dim wbPGRawTo As Workbook
+    Dim wbPG As Workbook
+    Dim wbPNPR As Workbook
+    Dim wbPNRat As Workbook
+    Dim wbPNRaw As Workbook
+    Dim wbPNRawTo As Workbook
+    Dim wbPn As Workbook
+    Dim wbPNX As Workbook
+    
+    filePathAll = SavePath & "Compiled IFRS17"
+    Set Path = RunCompWorkbook
+    Path.MoveFirst
+    Do While Not Path.EOF
+        
+        Set wbEPMan = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Manual.xlsx", UpdateLinks:=3)
+        Set wbEPRaw = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Reins.Raw.xlsx", UpdateLinks:=3)
+        Set wbEPFS = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "EP with FS.xlsx", UpdateLinks:=3)
+        'Set wbEPRat = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium Prior Ratio.xlsx", UpdateLinks:=3)
+        'Set wbEPPR = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Prior.xlsx", UpdateLinks:=3)
+        Set wbEP = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Reins.xlsx", UpdateLinks:=3)
+        'Set wbEPX = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium - wo XL.xlsx", UpdateLinks:=3)
+        
+        'wbEPPR.Save
+        wbEP.Save
+        'wbEPX.Save
+            
+        wbEP.Close SaveChanges:=False
+        wbEPMan.Close SaveChanges:=False
+        'wbEPPR.Close SaveChanges:=False
+        wbEPRaw.Close SaveChanges:=False
+        wbEPFS.Close SaveChanges:=False
+        'wbEPRat.Close SaveChanges:=False
+        'wbEPX.Close SaveChanges:=False
+        
+        Set wbOSGRat = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-" & GrRe & ".Ratio.xlsx", UpdateLinks:=3)
+        Set wbOSGRaw = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-" & GrRe & ".Raw.xlsx", UpdateLinks:=3)
+        Set wbOSGRawTo = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-" & GrRe & ".Total.Raw.xlsx", UpdateLinks:=3)
+        'Set wbOSNRat = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-Net.Ratio.xlsx", UpdateLinks:=3)
+        'Set wbOSNRaw = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-Net.Raw.xlsx", UpdateLinks:=3)
+        'Set wbOSNRawTo = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-NetTotal.Raw.FIXED-LBLW.v1.xlsx", UpdateLinks:=3)
+        Set wbOSGPR = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-" & GrRe & ".Prior.xlsx", UpdateLinks:=3)
+        Set wbOSG = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-" & GrRe & ".xlsx", UpdateLinks:=3)
+        'Set wbOSNPR = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-Net.Prior.xlsx", UpdateLinks:=3)
+        'Set wbOSN = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-Net.xlsx", UpdateLinks:=3)
+        'Set wbOSNX = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "OSClaim-Net - wo XL.xlsx", UpdateLinks:=3)
+        
+        wbOSGPR.Save
+        wbOSG.Save
+        'wbOSNPR.Save
+        'wbOSN.Save
+        'wbOSNX.Save
+        
+        wbOSGPR.Close SaveChanges:=False
+        wbOSGRat.Close SaveChanges:=False
+        wbOSGRaw.Close SaveChanges:=False
+        wbOSGRawTo.Close SaveChanges:=False
+        wbOSG.Close SaveChanges:=False
+        'wbOSNPR.Close SaveChanges:=False
+        'wbOSNRat.Close SaveChanges:=False
+        'wbOSNRaw.Close SaveChanges:=False
+        'wbOSNRawTo.Close SaveChanges:=False
+        'wbOSN.Close SaveChanges:=False
+        'wbOSNX.Close SaveChanges:=False
+        
+        Set wbPGRat = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-" & GrRe & ".Ratio.xlsx", UpdateLinks:=3)
+        Set wbPGRaw = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-" & GrRe & ".Raw.xlsx", UpdateLinks:=3)
+        Set wbPGRawTo = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-" & GrRe & ".Total.Raw.xlsx", UpdateLinks:=3)
+        'Set wbPNRat = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-Net.Ratio.xlsx", UpdateLinks:=3)
+        'Set wbPNRaw = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-Net.Raw.xlsx", UpdateLinks:=3)
+        'Set wbPNRawTo = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-NetTotal.Raw.FIXED-LBLW.v1.xlsx", UpdateLinks:=3)
+        Set wbPGPR = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-" & GrRe & ".Prior.xlsx", UpdateLinks:=3)
+        Set wbPG = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-" & GrRe & ".xlsx", UpdateLinks:=3)
+        'Set wbPNPR = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-Net.Prior.xlsx", UpdateLinks:=3)
+        'Set wbPn = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-Net.xlsx", UpdateLinks:=3)
+        'Set wbPNX = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "PaidClaim-Net - wo XL.xlsx", UpdateLinks:=3)
+        
+        
+        wbPGPR.Save
+        wbPG.Save
+        'wbPNPR.Save
+        'wbPn.Save
+        'wbPNX.Save
+
+        wbPGPR.Close SaveChanges:=False
+        wbPGRat.Close SaveChanges:=False
+        wbPGRaw.Close SaveChanges:=False
+        wbPGRawTo.Close SaveChanges:=False
+        wbPG.Close SaveChanges:=False
+        'wbPNRat.Close SaveChanges:=False
+        'wbPNRaw.Close SaveChanges:=False
+        'wbPNRawTo.Close SaveChanges:=False
+        'wbPn.Close SaveChanges:=False
+        'wbPNPR.Close SaveChanges:=False
+        'wbPNX.Close SaveChanges:=False
+        
+        Path.MoveNext
+        
+    Loop
+    'Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+    'Application.Calculation = xlCalculationAutomatic
+    
+    Beep
+    
+    MsgBox "Done"
+    
+End Sub
+Private Function RunCompWorkbook() As ADODB.Recordset
+ 
+    Dim rs As ADODB.Recordset
+    Dim year As Integer
+    Dim typeSuffix As Variant
+    
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "FolderName", adVarChar, 200
+        .Open
+        
+        For year = Coh_Start To Coh_End
+            
+            For Each typeSuffix In Array("LT", "ST")
+            'For Each typeSuffix In Array("ST")
+                
+                .AddNew
+                .Fields("FolderName").Value = "\" & year & "-" & typeSuffix & "\"
+                .Update
+            
+            Next typeSuffix
+        
+        Next year
+ 
+ 
+    End With
+    Set RunCompWorkbook = rs
+ 
+End Function
+
+
