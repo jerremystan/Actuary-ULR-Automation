@@ -1,0 +1,79 @@
+'This macro only works for formula file triangle (not value)
+
+Private Sub AddTriangle()
+    Application.Calculation = xlCalculationManual
+    Application.ScreenUpdating = False
+    
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim rng As Range
+    Dim rngT As Range
+    Dim lastRow As Integer
+    Dim lastCol As Integer
+    Dim oriDev As Integer
+    Dim tempString As String
+    
+    Set wb = ThisWorkbook
+    
+    For Each Sheet In wb.Sheets
+        
+        Set ws = wb.Sheets(Sheet.Name)
+        Debug.Print Sheet.Name
+        lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+        lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+        oriDev = lastRow - 1
+        
+        If ws.Cells(lastRow, 2).Value = 4 Then
+            ws.Cells(lastRow + 1, 1).Value = ws.Cells(lastRow, 1).Value + 1
+            ws.Cells(lastRow + 1, 2).Value = 1
+        Else
+            ws.Cells(lastRow + 1, 1).Value = ws.Cells(lastRow, 1).Value
+            ws.Cells(lastRow + 1, 2).Value = ws.Cells(lastRow, 2).Value + 1
+        End If
+        
+        If ws.Cells(1, lastCol).Value = 0 Then
+            If Left(ws.Cells(1, lastCol - 1).Value, 1) = "X" Then
+                tempString = Replace(ws.Cells(1, lastCol - 1).Value, "X", "")
+                ws.Cells(1, lastCol).Value = CStr("X" & CInt(tempString) + 1)
+            Else
+                ws.Cells(1, lastCol).Value = CStr(CInt(ws.Cells(1, lastCol - 1).Value) + 1)
+            End If
+            
+            ws.Range(ws.Cells(lastRow, 3), ws.Cells(lastRow, 3)).Copy
+        
+            For i = 1 To lastRow
+                 ws.Range(ws.Cells(lastRow + 2 - i, 2 + i), ws.Cells(lastRow + 2 - i, 2 + i)).PasteSpecial
+            Next i
+
+        Else
+            If Left(ws.Cells(1, lastCol).Value, 1) = "X" Then
+                tempString = Replace(ws.Cells(1, lastCol).Value, "X", "")
+                ws.Cells(1, lastCol + 1).Value = CStr("X" & CInt(tempString) + 1)
+            Else
+                ws.Cells(1, lastCol + 1).Value = CStr(CInt(ws.Cells(1, lastCol).Value) + 1)
+            End If
+            
+            ws.Range(ws.Cells(lastRow, 3), ws.Cells(lastRow, 3)).Copy
+        
+            For i = 1 To lastRow
+                 ws.Range(ws.Cells(lastRow + 2 - i, 2 + i), ws.Cells(lastRow + 2 - i, 2 + i)).PasteSpecial
+            Next i
+
+        End If
+        
+        
+    Next Sheet
+    
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    Beep
+    MsgBox "Done"
+End Sub
+
+
+
+
+
+
+
