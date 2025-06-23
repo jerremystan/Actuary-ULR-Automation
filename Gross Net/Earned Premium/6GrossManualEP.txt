@@ -1,0 +1,51 @@
+Private Const Valuation = "202412"
+
+Sub GrossManualEP()
+
+    Dim FdPath As String
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    
+    FdPath = "C:/Stanley/Tugas IFRS17/Reserving RCH Enhancement/" & Valuation & "/Gross Net/Earned Premium/Workbook/EP "
+     
+    '2020-ST
+    Set wb = Workbooks.Open(FdPath & "2020-ST/Earned Premium.Manual.xlsx")
+    Set ws = wb.Sheets("EP")
+    
+    ws.Cells(46, 6).Value = -360513012.58
+    ws.Cells(47, 6).Value = 360513012.58
+    
+    wb.Save
+    wb.Close SaveChanges:=0
+    
+    '2022-ST
+    Set wb = Workbooks.Open(FdPath & "2022-ST/Earned Premium.Manual.xlsx")
+    Set ws = wb.Sheets("EP")
+    
+    ws.Cells(54, 5).Value = -26047805206.08
+    ws.Cells(55, 5).Value = 26047805206.08
+    
+    wb.Save
+    wb.Close SaveChanges:=0
+    
+    '2023-ST
+    Set wb = Workbooks.Open(FdPath & "2023-ST/Earned Premium.Manual.xlsx")
+    Set ws = wb.Sheets("EP")
+    
+    ws.Cells(55, 9).Value = 159544980
+    ws.Cells(56, 9).Value = -159544980
+    
+    wb.Save
+    wb.Close SaveChanges:=0
+    
+    '2024-ST
+    Set wb = Workbooks.Open(FdPath & "2024-ST/Earned Premium.Manual.xlsx")
+    Set ws = wb.Sheets("EP")
+
+    ws.Cells(60, 8).Value = -1658528654.58874
+'    ws.Cells(60, 9).Value = 1658528654.58874
+    
+    wb.Save
+    wb.Close SaveChanges:=0
+    
+End Sub
