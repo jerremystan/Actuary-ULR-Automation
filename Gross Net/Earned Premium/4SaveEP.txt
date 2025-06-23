@@ -1,0 +1,106 @@
+Private Const ValDate = "202412"
+Private Const Coh_Start = 2020
+Private Const Coh_End = 2024
+
+
+Sub SaveEPOnly()
+
+    Application.ScreenUpdating = False
+
+    Application.DisplayAlerts = False
+    Dim wsT As Worksheet
+    Dim wsR As Worksheet
+
+    Dim Path As ADODB.Recordset
+    Dim filePathAll As String
+    Dim fileMove As String
+    Dim lastRow As Integer
+    Dim lastCol As Integer
+    Dim wbEP As Workbook
+    Dim wbEPMan As Workbook
+    Dim wbEPPri As Workbook
+    Dim wbEPRaw As Workbook
+    Dim wbEPFS As Workbook
+    Dim wbEPRat As Workbook
+    Dim wbEPTot As Workbook
+    
+    filePathAll = "C:\Stanley\Tugas IFRS17\Reserving RCH Enhancement\" & ValDate & "\Gross Net\Earned Premium\Workbook"
+    
+    Set Path = RunCompWorkbook
+    Path.MoveFirst
+    Do While Not Path.EOF
+        
+        Application.Calculation = xlCalculationManual
+
+
+        Set wbEPMan = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Manual.xlsx", UpdateLinks:=3)
+        Set wbEPRaw = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Raw.xlsx", UpdateLinks:=3)
+        Set wbEPFS = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "EP with FS.xlsx", UpdateLinks:=3)
+        'Set wbEPRat = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium Prior Ratio.xlsx", UpdateLinks:=3)
+        Set wbEPPR = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Prior.xlsx", UpdateLinks:=3)
+        Set wbEPTot = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.Total.Raw.xlsx", UpdateLinks:=3)
+        Set wbEP = Workbooks.Open(filePathAll & Path.Fields("FolderName").Value & "Earned Premium.xlsx", UpdateLinks:=3)
+        
+        Application.Calculation = xlCalculationAutomatic
+        
+        'wbEPPR.Save
+        wbEP.Save
+
+        wbEP.Close SaveChanges:=False
+        wbEPMan.Close SaveChanges:=False
+        wbEPPR.Close SaveChanges:=False
+        wbEPRaw.Close SaveChanges:=False
+        wbEPFS.Close SaveChanges:=False
+        'wbEPRat.Close SaveChanges:=False
+        wbEPTot.Close SaveChanges:=False
+
+        Path.MoveNext
+    Loop
+    Application.DisplayAlerts = True
+    
+    Application.ScreenUpdating = True
+    
+    Beep
+    
+    MsgBox "Done"
+    
+End Sub
+Private Function RunCompWorkbook() As ADODB.Recordset
+ 
+    Dim rs As ADODB.Recordset
+    Dim year As Integer
+    Dim typeSuffix As Variant
+    
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "FolderName", adVarChar, 200
+        .Open
+        
+        For year = Coh_Start To Coh_End
+            
+            For Each typeSuffix In Array("ST", "LT")
+                
+                .AddNew
+                .Fields("FolderName").Value = "\EP " & year & "-" & typeSuffix & "\"
+                .Update
+            
+            Next typeSuffix
+        
+        Next year
+ 
+ 
+    End With
+    Set RunCompWorkbook = rs
+ 
+End Function
+
+Function ColumnLetter(ByVal columnNumber As Integer) As String
+    ColumnLetter = Split(Cells(1, columnNumber).Address(True, False), "$")(0)
+End Function
+
+
+
+
