@@ -1,0 +1,91 @@
+Private Const ValDate = "202412"
+Private Const Coh_Start = 2009
+Private Const Coh_End = 2024
+Private Const Alamat = "D:\Stanley\Tugas IFRS17\TMI Reserving Macro Automation\TMI\"
+
+
+Sub MoveTotal()
+
+    Application.ScreenUpdating = False
+
+    Application.DisplayAlerts = False
+    Dim wsT As Worksheet
+    Dim wsR As Worksheet
+
+    Dim Path As ADODB.Recordset
+    Dim filePathAll As String
+    Dim fileMove As String
+    Dim lastRow As Integer
+    Dim lastCol As Integer
+    Dim wbEP As Workbook
+    Dim wbEPMan As Workbook
+    Dim wbEPPri As Workbook
+    Dim wbEPRaw As Workbook
+    Dim wbEPFS As Workbook
+    Dim wbEPRat As Workbook
+
+    fileMove = Alamat & ValDate & "\Master"
+    filePathAll = Alamat & ValDate & "\Earned Premium\Workbook"
+
+    Set wsT = Workbooks.Open(filePathAll & "\Earned Premium.Raw.All.Cohort.xlsx").Sheets("EP")
+    lastRow = wsT.Cells(wsT.Rows.Count, 1).End(xlUp).Row
+    lastCol = wsT.Cells(1, wsT.Columns.Count).End(xlToLeft).Column
+    wsT.Range("A1:" & ColumnLetter(lastCol) & lastRow).Copy
+    
+    Set wsR = Workbooks.Open(fileMove & "\Earned Premium Prior Ratio.xlsx", UpdateLinks:=3).Sheets("Total")
+    wsR.Range("A1").PasteSpecial Paste:=xlPasteAll
+    
+    Workbooks.Open(fileMove & "\Earned Premium Prior Ratio.xlsx").Save
+    
+    Workbooks.Open(filePathAll & "\Earned Premium.Raw.All.Cohort.xlsx").Close SaveChanges:=0
+    Workbooks.Open(fileMove & "\Earned Premium Prior Ratio.xlsx").Close SaveChanges:=0
+    
+    Application.DisplayAlerts = True
+    
+    Application.ScreenUpdating = True
+    
+    Beep
+    
+    MsgBox "Done"
+    
+End Sub
+Private Function RunCompWorkbook() As ADODB.Recordset
+ 
+    Dim rs As ADODB.Recordset
+    Dim year As Integer
+    Dim typeSuffix As Variant
+    
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "FolderName", adVarChar, 200
+        .Open
+        
+        For year = Coh_Start To Coh_End
+            
+            For Each typeSuffix In Array("ST", "LT")
+                
+                .AddNew
+                .Fields("FolderName").Value = "\EP " & year & "-" & typeSuffix & "\"
+                .Update
+            
+            Next typeSuffix
+        
+        Next year
+ 
+ 
+    End With
+    Set RunCompWorkbook = rs
+ 
+End Function
+
+Function ColumnLetter(ByVal columnNumber As Integer) As String
+    ColumnLetter = Split(Cells(1, columnNumber).Address(True, False), "$")(0)
+End Function
+
+
+
+
+
