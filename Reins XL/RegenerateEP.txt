@@ -1,0 +1,137 @@
+Private Const ValDate = "202412"
+Private Const Alamat = "D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Master\"
+Private Const OriDev = 61
+
+Sub UpdateTemp()
+'MAKRO INI DICOPY KE FILE FINAL EP
+Application.Calculation = xlCalculationManual
+Application.ScreenUpdating = False
+
+Dim FileUpd As Variant
+Dim ProCol As Variant
+Dim ProColN As Variant
+Dim ProColP As Variant
+Dim ws As Worksheet
+Dim OldF As String
+Dim FrontF As String
+Dim EndF As String
+Dim NewF As String
+
+FileUpd = Array("F", "G", "I", "J", "K", "L", "M", "N", "R", "S", "U", "V", "W", "X", "Y", "Z")
+'FileUpd = Array("Earned Premium - wo XL.xlsx")
+    
+    Set ws = ThisWorkbook.Sheets("EP")
+    
+    For Each element In FileUpd
+        
+        ' Loop through each cell in the range
+        For Each cell In ws.Range(element & "3:" & element & "42")
+        
+            ' Get the formula, remove the '=', and wrap in IFERROR
+            OldF = cell.Formula
+            NewF = Replace(OldF, "'[Earned Premium.Raw.xlsx]EP'", "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx]EP'")
+            cell.Formula = NewF
+        
+        Next cell
+        
+        ' Optionally save and close the workbook
+'         ws.Parent.Save
+'         ws.Parent.Close SaveChanges:=False
+    
+    Next element
+    
+    'LIABILITY GROSS
+    For Each cell In ws.Range("H2:H42")
+        
+            ' Get the formula, remove the '=', and wrap in IFERROR
+            OldF = cell.Formula
+            NewF = Replace(OldF, "SUM('[Earned Premium.Raw.xlsx]EP'", "SUM('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx]EP'")
+            NewF = Replace(NewF, "*'[Earned Premium.Raw.xlsx]EP'", "*'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx]EP'")
+            cell.Formula = NewF
+            
+            ' Assign the new formula back to the cell
+            cell.Formula = NewF
+        
+    Next cell
+    
+    'LIABILITY NET
+    For Each cell In ws.Range("T2:T42")
+        
+            ' Get the formula, remove the '=', and wrap in IFERROR
+            OldF = cell.Formula
+            NewF = Replace(OldF, "SUM('[Earned Premium.Raw.xlsx]EP'", "SUM('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx]EP'")
+            NewF = Replace(NewF, "*'[Earned Premium.Raw.xlsx]EP'", "*'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx]EP'")
+            cell.Formula = NewF
+            
+            ' Assign the new formula back to the cell
+            cell.Formula = NewF
+        
+    Next cell
+    
+    'Column that contain proportioned XL
+    ProCol = Array("I", "J", "K", "L", "U", "V", "W", "X")
+    ProColN = Array("Q", "R", "T", "U", "AM", "AN", "AP", "AQ")
+    ProColP = Array("N", "N", "V", "V", "AJ", "AJ", "AR", "AR")
+    
+    For i = 0 To UBound(ProCol)
+        
+        ' Loop through each cell in the range
+        For Each cell In ws.Range(ProCol(i) & "43:" & ProCol(i) & OriDev + 1)
+            
+            ' Get the formula, remove the '=', and wrap in IFERROR
+            OldF = cell.Formula
+            FrontF = Mid(OldF, 1, 100)
+            EndF = Mid(OldF, 101, Len(OldF))
+            NewF = Replace(EndF, "('[Earned Premium.Raw.xlsx]EP'", "('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx]EP'")
+            NewF = Replace(NewF, "'[Earned Premium.Raw.xlsx]EP'!$" & ProColN(i), "'\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx]EP'!$" & ProColN(i))
+            NewF = Replace(NewF, "SUM('[Earned Premium.Raw.xlsx", "SUM('\\fileserver\Accounting-In\ACTUARY SECTION\IBNR\" & ValDate & "\\Compiled\[Earned Premium.Raw.xlsx")
+            NewF = FrontF & NewF
+            cell.Formula = NewF
+            
+            'FrontF = Mid(OldF, 1, 100)
+            'EndF = Mid(OldF, 101, Len(OldF))
+        
+        Next cell
+        
+        ' Optionally save and close the workbook
+'         ws.Parent.Save
+'         ws.Parent.Close SaveChanges:=False
+    
+    Next i
+    
+    For Each cell In ws.Range("C3:AD" & OriDev + 1)
+        
+            ' Get the formula, remove the '=', and wrap in IFERROR
+            OldF = cell.Formula
+            OldF = Replace(OldF, "=", "")
+            NewF = "=IFERROR(" & OldF & ",0)"
+            
+            ' Assign the new formula back to the cell
+            cell.Formula = NewF
+        
+    Next cell
+    
+    
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    Beep
+    
+    MsgBox "Done"
+
+End Sub
+
+
+Function ColumnLetter(ColumnNumber As Integer) As String
+    Dim Letter As String
+    Letter = ""
+
+    ' Repeat the process of dividing by 26 to get the column letters
+    Do While ColumnNumber > 0
+        Letter = Chr(((ColumnNumber - 1) Mod 26) + 65) & Letter
+        ColumnNumber = (ColumnNumber - 1) \ 26
+    Loop
+    
+    ColumnLetter = Letter
+End Function
+
+
