@@ -1,0 +1,59 @@
+Private Const ValDate = "202412"
+Private Const Prior = ".Raw.xlsx"
+Private Const RawFile = ""
+
+
+Sub ManualClaim()
+    
+    Dim ws As Worksheet
+    Dim fileArr As Variant
+    Dim wsS As Worksheet
+    Dim wsP As Worksheet
+    Dim startFormula As String
+    Dim ratioValue As Double
+    
+    fileArr = Array("OSClaim-Gross", "OSClaim-Net", "PaidClaim-Gross", "PaidClaim-Net")
+    
+    
+    For Each FN In fileArr
+    
+        If FN = "OSClaim-Gross" Or FN = "OSClaim-Net" Then
+            
+            Set wsS = Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Outstanding Claims\Workbook\" & FN & "Total.Raw.FIXED-LBLW.v1.xlsx", UpdateLinks:=0).Sheets("Fire")
+            Set wsP = Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Outstanding Claims\Workbook\" & FN & Prior, UpdateLinks:=0).Sheets("Fire")
+        
+        Else
+        
+            Set wsS = Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Paid Claims\Workbook\" & FN & "Total.Raw.FIXED-LBLW.v1.xlsx", UpdateLinks:=0).Sheets("Fire")
+            Set wsP = Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Paid Claims\Workbook\" & FN & Prior, UpdateLinks:=0).Sheets("Fire")
+        
+        End If
+        
+        ratioValue = wsP.Cells(42, 5).Value / wsS.Cells(42, 5).Value
+        
+        Debug.Print ratioValue
+        
+        Set ws = Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Master\" & FN & ".xlsx", UpdateLinks:=0).Sheets("Fire")
+        
+        startFormula = ws.Cells(42, 5).FormulaR1C1
+        startFormula = Replace(startFormula, "+", "*(" & ratioValue & ") +")
+        ws.Cells(42, 5).FormulaR1C1 = startFormula
+        
+        If FN = "OSClaim-Gross" Or FN = "OSClaim-Net" Then
+            
+            Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Outstanding Claims\Workbook\" & FN & "Total.Raw.FIXED-LBLW.v1.xlsx", UpdateLinks:=0).Close SaveChanges:=0
+            Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Outstanding Claims\Workbook\" & FN & Prior, UpdateLinks:=0).Close SaveChanges:=0
+        
+        Else
+        
+            Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Paid Claims\Workbook\" & FN & "Total.Raw.FIXED-LBLW.v1.xlsx", UpdateLinks:=0).Close SaveChanges:=0
+            Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\\" & ValDate & "\Paid Claims\Workbook\" & FN & Prior, UpdateLinks:=0).Close SaveChanges:=0
+        
+        End If
+        
+    Next FN
+    
+    
+
+
+End Sub
