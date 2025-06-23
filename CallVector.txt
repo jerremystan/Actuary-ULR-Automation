@@ -1,7 +1,7 @@
 Private Const YearStart = 2009
 Private Const YearEnd = 2024
-Private Const c_TMI = "202412 v.9.00 - RCH (Reserving)"
-Private Const d_TMI = "202412 v.8.00 - Engineering"
+Private Const c_ = "202412 v.9.00 - RCH (Reserving)"
+Private Const d_ = "202412 v.8.00 - Engineering"
 Private Const c_Projects = "202412"
 Private Const c_User = "Master"
 Private Const ValDate = "202412"
@@ -68,13 +68,13 @@ Application.DisplayAlerts = False
     'Looping Folder
     
     
-   ' Set wbMod = Workbooks.Open("D:\Stanley\Tugas IFRS17\TMI Reserving Macro Automation\02. TMI RR 2024 (Data as at December 2024) v.15.00.xlsm", UpdateLinks:=0)
+   ' Set wbMod = Workbooks.Open("D:\Stanley\Tugas IFRS17\ Reserving Macro Automation\02.  RR 2024 (Data as at December 2024) v.15.00.xlsm", UpdateLinks:=0)
    
     
-    Call resQ.ConnectByName(c_TMI, c_User, c_Pass)
+    Call resQ.ConnectByName(c_, c_User, c_Pass)
     Set projectResQ = resQ.Projects(c_Projects)
     
-    Call resQ2.ConnectByName(d_TMI, c_User, c_Pass)
+    Call resQ2.ConnectByName(d_, c_User, c_Pass)
     Set projectResQ2 = resQ2.Projects(c_Projects)
     
     Set ListR = ReservingList
