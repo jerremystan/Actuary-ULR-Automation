@@ -1,0 +1,988 @@
+
+Private Const c_ = "202412 v.8.00 - Engineering"
+Private Const c_Projects = "202312"
+Private Const c_User = "Master"
+Private Const c_Pass = ""
+Private Const ValDate = "202412"
+Private Const Valuation = "'2023-12-31"
+Private Const OriDev = 57 'Jumlah Rows Excel di Claim Triangle dikurangi 1
+Private Const OutVer = "v1"
+Private Const ResQName = "Non XL RI - IFRS17"
+Private Const GrRe = "Reins" 'Gross or Reins
+Private Const Extent = "NXL"
+Private Const SheetExt = "_NXL_RI"
+Private Const SavePath = "C:\Stanley\Tugas IFRS17\Reserving RCH Enhancement\" & ValDate & "\" & GrRe & " " & Extent & "\"
+Sub CompileToResQ()
+    SwitchOff (True)
+    
+    Application.DisplayAlerts = False
+    Application.ScreenUpdating = False
+    
+    Dim rsSheetsG As ADODB.Recordset
+    Dim rsSheetsN As ADODB.Recordset
+    Dim rsSheetsNX As ADODB.Recordset
+    Dim resQ As New ResQApplication
+    Dim projectResQ As xResQProject
+    Dim reservingClassResQ As xReservingClass
+    Dim linkRow As Integer
+    Dim resRow As Integer
+    Dim lastRow As Long
+    
+    Dim wbEP As Workbook
+    Dim wbEPX As Workbook
+    Dim wbPCGrs As Workbook
+    Dim wbPCNet As Workbook
+    Dim wbPCNetX As Workbook
+    Dim wbOSGrs As Workbook
+    Dim wbOSNet As Workbook
+    Dim wbOSNetX As Workbook
+    Dim newWorkbook As Workbook
+    Dim linkWorkbook As Workbook
+    
+    Dim masterSheet As Worksheet
+    Dim newSheet As Worksheet
+    Dim wsEP As Worksheet
+    Dim wsEPX As Worksheet
+    Dim wsPCGrs As Worksheet
+    Dim wsPCNet As Worksheet
+    Dim wsPCNetX As Worksheet
+    Dim wsOSGrs As Worksheet
+    Dim wsOSNet As Worksheet
+    Dim wsOSNetX As Worksheet
+    Dim wsLink As Worksheet
+    Dim wsLinkA As Worksheet
+    
+    Dim SavesPath As String
+    
+    'timer
+    Dim startTime As Date
+    Dim endTime As Date
+    Dim elapsedTime As Double
+    Dim formattedTime As String
+    startTime = Now
+    
+    'Looping Folder
+    
+'    Set Path = RunFolder
+'    Path.MoveFirst
+'
+    Set masterSheet = ThisWorkbook.Sheets("Master")
+    Set linkWorkbook = Workbooks.Open(SavePath & "Total ULR Link - Master.v3 - Reins.xlsx")
+    Set wsLink = linkWorkbook.Worksheets("Link")
+    Set wsLinkA = linkWorkbook.Worksheets("ULR")
+
+    linkRow = 1
+    resRow = 1
+    
+    'Do While Not Path.EOF
+        If GrRe = "Gross" Then
+        
+            Set wbEP = Workbooks.Open(SavePath & "Compiled IFRS17" & "\" & Path.Fields("FolderName").Value & "\" & "Earned Premium.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbEP = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "Earned Premium.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbEPX = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "Earned Premium - wo XL.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            Set wbPCGrs = Workbooks.Open(SavePath & "Compiled IFRS17" & "\" & Path.Fields("FolderName").Value & "\" & "PaidClaim-Gross.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbPCNet = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "PaidClaim-Net.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbPCNetX = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "PaidClaim-Net - wo XL.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            Set wbOSGrs = Workbooks.Open(SavePath & "Compiled IFRS17" & "\" & Path.Fields("FolderName").Value & "\" & "OSClaim-Gross.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbOSNet = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "OSClaim-Net.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbOSNetX = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "OSClaim-Net - wo XL.xlsx", ReadOnly:=True, UpdateLinks:=0)
+               
+        Else
+            
+            Set wbEP = Workbooks.Open(SavePath & "Compiled IFRS17" & "\" & Path.Fields("FolderName").Value & "\" & "Earned Premium.Reins.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbEP = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "Earned Premium.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbEPX = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "Earned Premium - wo XL.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            Set wbPCGrs = Workbooks.Open(SavePath & "Compiled IFRS17" & "\" & Path.Fields("FolderName").Value & "\" & "PaidClaim-Reins.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbPCNet = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "PaidClaim-Net.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbPCNetX = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "PaidClaim-Net - wo XL.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            Set wbOSGrs = Workbooks.Open(SavePath & "Compiled IFRS17" & "\" & Path.Fields("FolderName").Value & "\" & "OSClaim-Reins.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbOSNet = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "OSClaim-Net.xlsx", ReadOnly:=True, UpdateLinks:=0)
+            'Set wbOSNetX = Workbooks.Open(filePathAll & "\" & Path.Fields("FolderName").Value & "\" & "OSClaim-Net - wo XL.xlsx", ReadOnly:=True, UpdateLinks:=0)
+        
+        End If
+               
+        'New WB
+        Set newWorkbook = Workbooks.Add
+        
+        linkRow = linkRow + 1
+        
+        'Looping Sheets
+        Set rsSheetsG = SheetsListGross
+        rsSheetsG.MoveFirst
+    
+        If Not rsSheetsG.EOF Then
+            Set wsEP = wbEP.Worksheets("EP")
+            
+            Call resQ.ConnectByName(c_, c_User, c_Pass)
+            Set projectResQ = resQ.Projects(c_Projects)
+            
+            Do While Not rsSheetsG.EOF
+                Debug.Print rsSheetsG.Fields("ResQ Path")
+                Set reservingClassResQ = projectResQ.ReservingClasses(rsSheetsG.Fields("ResQ Path"))
+                Set wsPCGrs = wbPCGrs.Worksheets(rsSheetsG.Fields("Sheet Name CL").Value)
+                Set wsOSGrs = wbOSGrs.Worksheets(rsSheetsG.Fields("Sheet Name CL").Value)
+                
+                'Earned Premium
+                For i = 1 To OriDev '9 karena pemotongan accident year 2009 Q4 sampai 2011 Q4
+                    reservingClassResQ.Vectors("Ultimate Premiums").ValuesByIndex(i + 1) = wsEP.Cells(i + 2, rsSheetsG.Fields("Column EP").Value)
+                Next i
+                
+                reservingClassResQ.Vectors("Ultimate Premiums").Save
+                
+                'Paid Claims
+                reservingClassResQ.Triangles("Paid Claims").Cumulative = False
+                For i = 1 To OriDev 'Row TriA
+                    
+                    For j = 1 To OriDev + 1 - i 'Column TriA
+                    
+                        reservingClassResQ.Triangles("Paid Claims").ValuesByIndex(i, j) = wsPCGrs.Cells(i + 1, j + 2)
+                    
+                    Next j
+                    
+                Next i
+                reservingClassResQ.Triangles("Paid Claims").Cumulative = True
+                
+                reservingClassResQ.Triangles("Paid Claims").Save
+                
+                'OS Claims
+                For i = 1 To OriDev  'Row TriA
+                    
+                    For j = 1 To OriDev + 1 - i 'Column TriA
+                    
+                        reservingClassResQ.Triangles("Outstanding Claims").ValuesByIndex(i, j) = wsOSGrs.Cells(i + 1, j + 2)
+                    
+                    Next j
+                    
+                Next i
+                
+                reservingClassResQ.Triangles("Outstanding Claims").Save
+                
+                
+                For i = 1 To OriDev
+
+                    masterSheet.Cells(i + 1, 1).Value = reservingClassResQ.Vectors("Ultimate Premiums").PeriodLabel(i)
+                    masterSheet.Cells(i + 1, 2).Value = reservingClassResQ.Vectors("Ultimate Premiums").ValuesByIndex(i)
+                    masterSheet.Cells(i + 1, 3).Value = reservingClassResQ.Vectors("Ultimate Claims").ValuesByIndex(i)
+                    masterSheet.Cells(i + 1, 4).Value = reservingClassResQ.Vectors("Estimated Ultimate Loss Ratio").ValuesByIndex(i)
+
+                Next i
+
+                Set newSheet = newWorkbook.Sheets.Add(After:=newWorkbook.Sheets(newWorkbook.Sheets.Count))
+
+                newSheet.Name = rsSheetsG.Fields("New Name").Value & SheetExt
+
+                lastRow = masterSheet.Cells(masterSheet.Rows.Count, 1).End(xlUp).Row + 1
+
+                masterSheet.Range("A1:E" & lastRow).Copy
+                newSheet.Range("A1").PasteSpecial Paste:=xlPasteAllUsingSourceTheme
+
+                newSheet.Cells(lastRow, 1).Value = "Total"
+                newSheet.Cells(lastRow, 2).Formula = "=SUMIF(B2:B" & lastRow - 1 & ",""<>#n/a"")"
+                newSheet.Cells(lastRow, 3).Formula = "=SUMIF(C2:C" & lastRow - 1 & ",""<>#n/a"")"
+                newSheet.Cells(lastRow, 4).Formula = "=IFERROR(C" & lastRow & "/B" & lastRow & ",0)"
+
+                newSheet.Range("A" & lastRow & ":D" & lastRow).Font.Bold = True
+                newSheet.Range("D1").EntireColumn.NumberFormat = "0.00%"
+                newSheet.Columns("A:D").AutoFit
+                
+                'Next Sheet
+                
+                rsSheetsG.MoveNext
+            Loop
+            
+            resQ.Disconnect
+        End If
+        
+'        Set rsSheetsN = SheetsListNet
+'        rsSheetsN.MoveFirst
+'
+'        If Not rsSheetsN.EOF Then
+'            Set wsEP = wbEP.Worksheets("EP")
+'
+'            Call resQ.ConnectByName(c_, c_User, c_Pass)
+'            Set projectResQ = resQ.Projects(c_Projects)
+'
+'            Do While Not rsSheetsN.EOF
+'            Debug.Print rsSheetsN.Fields("ResQ Path").Value
+'                Set reservingClassResQ = projectResQ.ReservingClasses(rsSheetsN.Fields("ResQ Path"))
+'                Set wsPCNet = wbPCNet.Worksheets(rsSheetsN.Fields("Sheet Name CL").Value)
+'                Set wsOSNet = wbOSNet.Worksheets(rsSheetsN.Fields("Sheet Name CL").Value)
+'
+'                'Earned Premium
+'                For i = 1 To OriDev
+'
+'                    reservingClassResQ.Vectors("Ultimate Premiums").ValuesByIndex(i) = wsEP.Cells(i + 10, rsSheetsN.Fields("Column EP").Value)
+'
+'                Next i
+'
+'                reservingClassResQ.Vectors("Ultimate Premiums").Save
+'
+'                'Paid Claims
+'                reservingClassResQ.Triangles("Paid Claims").Cumulative = False
+'                For i = 1 To OriDev  'Row TriA
+'
+'                    For j = 1 To OriDev + 1 - i 'Column TriA
+'
+'                        reservingClassResQ.Triangles("Paid Claims").ValuesByIndex(i, j) = wsPCNet.Cells(i + 10, j + 2)
+'
+'                    Next j
+'
+'                Next i
+'                reservingClassResQ.Triangles("Paid Claims").Cumulative = True
+'
+'                reservingClassResQ.Triangles("Paid Claims").Save
+'
+'                'OS Claims
+'
+'                For i = 1 To OriDev  'Row TriA
+'
+'                    For j = 1 To OriDev + 1 - i 'Column TriA
+'
+'                        reservingClassResQ.Triangles("Outstanding Claims").ValuesByIndex(i, j) = wsOSNet.Cells(i + 10, j + 2)
+'
+'                    Next j
+'
+'                Next i
+'
+'                reservingClassResQ.Triangles("Outstanding Claims").Save
+'
+'                For i = 1 To OriDev
+'
+'                    masterSheet.Cells(i + 1, 1).Value = reservingClassResQ.Vectors("Ultimate Premiums").PeriodLabel(i)
+'                    masterSheet.Cells(i + 1, 2).Value = reservingClassResQ.Vectors("Ultimate Premiums").ValuesByIndex(i)
+'                    masterSheet.Cells(i + 1, 3).Value = reservingClassResQ.Vectors("Ultimate Claims").ValuesByIndex(i)
+'                    masterSheet.Cells(i + 1, 4).Value = reservingClassResQ.Vectors("Estimated Ultimate Loss Ratio").ValuesByIndex(i)
+'
+'                Next i
+'
+'                Set newSheet = newWorkbook.Sheets.Add(After:=newWorkbook.Sheets(newWorkbook.Sheets.Count))
+'
+'                newSheet.Name = rsSheetsN.Fields("New Name").Value & "_Net"
+'
+'                lastRow = masterSheet.Cells(masterSheet.Rows.Count, 1).End(xlUp).Row + 1
+'
+'                masterSheet.Range("A1:E" & lastRow).Copy
+'
+'                newSheet.Range("A1").PasteSpecial Paste:=xlPasteAllUsingSourceTheme
+'
+'                newSheet.Cells(lastRow, 1).Value = "Total"
+'                newSheet.Cells(lastRow, 2).Formula = "=SUMIF(B2:B" & lastRow - 1 & ",""<>#n/a"")"
+'                newSheet.Cells(lastRow, 3).Formula = "=SUMIF(C2:C" & lastRow - 1 & ",""<>#n/a"")"
+'                newSheet.Cells(lastRow, 4).Formula = "=IFERROR(C" & lastRow & "/B" & lastRow & ",0)"
+'
+'                newSheet.Range("A" & lastRow & ":D" & lastRow).Font.Bold = True
+'                newSheet.Range("D1").EntireColumn.NumberFormat = "0.00%"
+'                newSheet.Columns("A:D").AutoFit
+'
+'                'Next Sheet
+'                rsSheetsN.MoveNext
+'            Loop
+'
+'            resQ.Disconnect
+'        End If
+        
+'        Set rsSheetsNX = SheetsListNetXL
+'        rsSheetsNX.MoveFirst
+'
+'        If Not rsSheetsNX.EOF Then
+'            Set wsEPX = wbEPX.Worksheets("EP")
+'
+'            Call resQ.ConnectByName(c_, c_User, c_Pass)
+'            Set projectResQ = resQ.Projects(c_Projects)
+'
+'            Do While Not rsSheetsNX.EOF
+'            Debug.Print rsSheetsNX.Fields("ResQ Path").Value
+'                Set reservingClassResQ = projectResQ.ReservingClasses(rsSheetsNX.Fields("ResQ Path"))
+'                Set wsPCNetX = wbPCNetX.Worksheets(rsSheetsNX.Fields("Sheet Name CL").Value)
+'                Set wsOSNetX = wbOSNetX.Worksheets(rsSheetsNX.Fields("Sheet Name CL").Value)
+'
+'                'Earned Premium
+'                For i = 1 To OriDev
+'
+'                    reservingClassResQ.Vectors("Ultimate Premiums").ValuesByIndex(i) = wsEPX.Cells(i + 10, rsSheetsNX.Fields("Column EP").Value)
+'
+'                Next i
+'
+'                reservingClassResQ.Vectors("Ultimate Premiums").Save
+'
+'                'Paid Claims
+'                reservingClassResQ.Triangles("Paid Claims").Cumulative = False
+'                For i = 1 To OriDev  'Row TriA
+'
+'                    For j = 1 To OriDev + 1 - i 'Column TriA
+'
+'                        reservingClassResQ.Triangles("Paid Claims").ValuesByIndex(i, j) = wsPCNetX.Cells(i + 10, j + 2)
+'
+'                    Next j
+'
+'                Next i
+'                reservingClassResQ.Triangles("Paid Claims").Cumulative = True
+'
+'                reservingClassResQ.Triangles("Paid Claims").Save
+'
+'                'OS Claims
+'
+'                For i = 1 To OriDev  'Row TriA
+'
+'                    For j = 1 To OriDev + 1 - i 'Column TriA
+'
+'                        reservingClassResQ.Triangles("Outstanding Claims").ValuesByIndex(i, j) = wsOSNetX.Cells(i + 10, j + 2)
+'
+'                    Next j
+'
+'                Next i
+'
+'                reservingClassResQ.Triangles("Outstanding Claims").Save
+'
+'                For i = 1 To OriDev
+'
+'                    masterSheet.Cells(i + 1, 1).Value = reservingClassResQ.Vectors("Ultimate Premiums").PeriodLabel(i)
+'                    masterSheet.Cells(i + 1, 2).Value = reservingClassResQ.Vectors("Ultimate Premiums").ValuesByIndex(i)
+'                    masterSheet.Cells(i + 1, 3).Value = reservingClassResQ.Vectors("Ultimate Claims").ValuesByIndex(i)
+'                    masterSheet.Cells(i + 1, 4).Value = reservingClassResQ.Vectors("Estimated Ultimate Loss Ratio").ValuesByIndex(i)
+'
+'                Next i
+'
+'                Set newSheet = newWorkbook.Sheets.Add(After:=newWorkbook.Sheets(newWorkbook.Sheets.Count))
+'
+'                newSheet.Name = rsSheetsNX.Fields("New Name").Value & "_Net-wo-XL"
+'
+'                lastRow = masterSheet.Cells(masterSheet.Rows.Count, 1).End(xlUp).Row + 1
+'
+'                masterSheet.Range("A1:E" & lastRow).Copy
+'
+'                newSheet.Range("A1").PasteSpecial Paste:=xlPasteAllUsingSourceTheme
+'
+'                newSheet.Cells(lastRow, 1).Value = "Total"
+'                newSheet.Cells(lastRow, 2).Formula = "=SUMIF(B2:B" & lastRow - 1 & ",""<>#n/a"")"
+'                newSheet.Cells(lastRow, 3).Formula = "=SUMIF(C2:C" & lastRow - 1 & ",""<>#n/a"")"
+'                newSheet.Cells(lastRow, 4).Formula = "=IFERROR(C" & lastRow & "/B" & lastRow & ",0)"
+'
+'                newSheet.Range("A" & lastRow & ":D" & lastRow).Font.Bold = True
+'                newSheet.Range("D1").EntireColumn.NumberFormat = "0.00%"
+'                newSheet.Columns("A:D").AutoFit
+'
+'                'Next Sheet
+'                rsSheetsNX.MoveNext
+'            Loop
+'
+'            resQ.Disconnect
+'        End If
+        
+        'Next Folder
+        wbEP.Close SaveChanges:=False
+        'wbEPX.Close SaveChanges:=False
+        wbPCGrs.Close SaveChanges:=False
+        'wbPCNet.Close SaveChanges:=False
+        'wbPCNetX.Close SaveChanges:=False
+        wbOSGrs.Close SaveChanges:=False
+        'wbOSNet.Close SaveChanges:=False
+        'wbOSNetX.Close SaveChanges:=False
+        
+        'Delete Sheet 1
+        newWorkbook.Sheets("Sheet1").Delete
+
+        SavesPath = SavePath & "IBNR Cohort-Term\Estimated ULR " & Path.Fields("FolderName").Value & "." & OutVer & ".xlsx"
+
+        newWorkbook.SaveAs FileName:=SavesPath, FileFormat:=51
+
+        wsLink.Cells(linkRow, 1).Value = Valuation
+        wsLink.Cells(linkRow, 2).Value = Mid(Path.Fields("FolderName").Value, 1, 4)
+        wsLink.Cells(linkRow, 3).Value = IIf(Mid(Path.Fields("FolderName").Value, 6, 2) = "ST", 1, 0)
+        wsLink.Hyperlinks.Add Anchor:=wsLink.Cells(linkRow, 4), Address:="\\fileserver\Accounting-In\ACTUARY SECTION\IFRS17\Working Paper\Compiled IFRS17\" & ValDate & "\" & GrRe & " " & Extent & "\" & Path.Fields("FolderName").Value & "\Earned Premium.Reins.xlsx"
+        wsLink.Hyperlinks.Add Anchor:=wsLink.Cells(linkRow, 5), Address:="\\fileserver\Accounting-In\ACTUARY SECTION\IFRS17\Working Paper\Compiled IFRS17\" & ValDate & "\" & GrRe & " " & Extent & "\" & Path.Fields("FolderName").Value & "\PaidClaim-Reins.xlsx"
+        wsLink.Hyperlinks.Add Anchor:=wsLink.Cells(linkRow, 6), Address:="\\fileserver\Accounting-In\ACTUARY SECTION\IFRS17\Working Paper\Compiled IFRS17\" & ValDate & "\" & GrRe & " " & Extent & "\" & Path.Fields("FolderName").Value & "\OSClaim-Reins.xlsx"
+        Set Rcode = LinkList
+        Rcode.MoveFirst
+
+        lastRow = masterSheet.Cells(masterSheet.Rows.Count, 1).End(xlUp).Row + 1
+
+        Do While Not Rcode.EOF
+
+            resRow = resRow + 1
+
+            wsLinkA.Cells(resRow, 1).Value = Valuation
+            wsLinkA.Cells(resRow, 2).Value = Mid(Path.Fields("FolderName").Value, 1, 4)
+            wsLinkA.Cells(resRow, 3).Value = Rcode.Fields("Reserve Code").Value
+            wsLinkA.Cells(resRow, 4).Value = IIf(Mid(Path.Fields("FolderName").Value, 6, 2) = "ST", 1, 0)
+            wsLinkA.Cells(1, 5).Formula = ResQName & "ULR"
+            wsLinkA.Cells(resRow, 5).Formula = "='[" & "Estimated ULR " & Path.Fields("FolderName").Value & "." & OutVer & ".xlsx]" & Rcode.Fields("Sheet Code").Value & SheetExt & "'!$D$" & lastRow & "*100"
+            'wsLinkA.Cells(resRow, 6).Formula = "='[" & "Estimated ULR " & Path.Fields("FolderName").Value & "." & OutVer & ".xlsx]" & Rcode.Fields("Sheet Code").Value & "_Net" & "'!$D$" & lastRow & "*100"
+            'wsLinkA.Cells(resRow, 7).Formula = "='[" & "Estimated ULR " & Path.Fields("FolderName").Value & "." & OutVer & ".xlsx]" & Rcode.Fields("Sheet Code").Value & "_Net-wo-XL" & "'!$D$" & lastRow & "*100"
+
+            Rcode.MoveNext
+        Loop
+        
+        newWorkbook.Close SaveChanges:=False
+
+        'Path.MoveNext
+    'Loop
+'
+'    linkWorkbook.SaveAs FileName:=SavePath & "IBNR Cohort-Term\ULR " & ValDate & "." & ResQName & "." & OutVer & ".xlsx", FileFormat:=51
+'
+'    linkWorkbook.Close SaveChanges:=False
+        
+    'end time
+    endTime = Now
+    'elapsed time
+    elapsedTime = DateDiff("s", startTime, endTime)
+    formattedTime = FormatTime(elapsedTime)
+    
+    MsgBox "Done!" & vbCrLf & "Running time: " & formattedTime
+    
+    Application.DisplayAlerts = True
+    Application.ScreenUpdating = True
+    
+    SwitchOff (False)
+End Sub
+
+
+Private Function SheetsListGross() As ADODB.Recordset
+    Dim rs As ADODB.Recordset
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "Sheet Name CL", adVarChar, 200
+        .Fields.Append "New Name", adVarChar, 200
+        .Fields.Append "Column EP", adInteger
+        .Fields.Append "ResQ Path", adVarChar, 200
+        .Open
+        
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-OD-PartialLoss"
+'        .Fields("New Name").Value = "Auto-OD-PL"
+'        .Fields("Column EP").Value = 3
+'        .Fields("ResQ Path").Value = ResQName & "\Auto\OD\Partial Loss"
+'        .Update
+'
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-OD-TotalLoss-MotorCycle"
+'        .Fields("New Name").Value = "Auto-OD-TL-MCyc"
+'        .Fields("Column EP").Value = 3
+'        .Fields("ResQ Path").Value = ResQName & "\Auto\OD\Total Loss\Motorcycle"
+'        .Update
+'
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-OD-TotalLoss-NonMotorCycle"
+'        .Fields("New Name").Value = "Auto-OD-TL-NonMCyc"
+'        .Fields("Column EP").Value = 3
+'        .Fields("ResQ Path").Value = ResQName & "\Auto\OD\Total Loss\Non Motorcycle"
+'        .Update
+'
+'        .AddNew
+'        .Fields("Sheet Name CL").Value = "Auto-TP"
+'        .Fields("New Name").Value = "Auto-TP"
+'        .Fields("Column EP").Value = 3
+'        .Fields("ResQ Path").Value = ResQName & "\Auto\TP"
+'        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto"
+        .Fields("New Name").Value = "Auto"
+        .Fields("Column EP").Value = 3
+        .Fields("ResQ Path").Value = ResQName & "\Auto"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Engineering"
+        .Fields("New Name").Value = "Engineering"
+        .Fields("Column EP").Value = 7
+        .Fields("ResQ Path").Value = ResQName & "\Engineering"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Fire"
+        .Fields("New Name").Value = "Fire"
+        .Fields("Column EP").Value = 6
+        .Fields("ResQ Path").Value = ResQName & "\Fire"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-Other"
+        .Fields("New Name").Value = "Marine-Other"
+        .Fields("Column EP").Value = 5
+        .Fields("ResQ Path").Value = ResQName & "\Marine\Non E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-ECommerce"
+        .Fields("New Name").Value = "Marine-ECommerce"
+        .Fields("Column EP").Value = 4
+        .Fields("ResQ Path").Value = ResQName & "\Marine\E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Liability"
+        .Fields("New Name").Value = "Liability"
+        .Fields("Column EP").Value = 8
+        .Fields("ResQ Path").Value = ResQName & "\Liability"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Retail"
+        .Fields("New Name").Value = "PA-Retail"
+        .Fields("Column EP").Value = 9
+        .Fields("ResQ Path").Value = ResQName & "\PA\Retail"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Commercial"
+        .Fields("New Name").Value = "PA-Commercial"
+        .Fields("Column EP").Value = 10
+        .Fields("ResQ Path").Value = ResQName & "\PA\Commercial"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Commercial"
+        .Fields("New Name").Value = "Travel-Commercial"
+        .Fields("Column EP").Value = 12
+        .Fields("ResQ Path").Value = ResQName & "\Travel\Commercial"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Retail"
+        .Fields("New Name").Value = "Travel-Retail"
+        .Fields("Column EP").Value = 11
+        .Fields("ResQ Path").Value = ResQName & "\Travel\Retail"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Trade Credit"
+        .Fields("New Name").Value = "Trade Credit"
+        .Fields("Column EP").Value = 13
+        .Fields("ResQ Path").Value = ResQName & "\Trade Credit"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various"
+        .Fields("New Name").Value = "Various"
+        .Fields("Column EP").Value = 14
+        .Fields("ResQ Path").Value = ResQName & "\Various\Non E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Health"
+        .Fields("New Name").Value = "Health"
+        .Fields("Column EP").Value = 27
+        .Fields("ResQ Path").Value = ResQName & "\Health"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various-ECommerce"
+        .Fields("New Name").Value = "Various-ECommerce"
+        .Fields("Column EP").Value = 29
+        .Fields("ResQ Path").Value = ResQName & "\Various\Commerce"
+        .Update
+        
+    End With
+    
+    Set SheetsListGross = rs
+End Function
+
+Private Function SheetsListNet() As ADODB.Recordset
+    Dim rs As ADODB.Recordset
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "Sheet Name CL", adVarChar, 200
+        .Fields.Append "New Name", adVarChar, 200
+        .Fields.Append "Column EP", adInteger
+        .Fields.Append "ResQ Path", adVarChar, 200
+        .Open
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-OD-PartialLoss"
+        .Fields("New Name").Value = "Auto-OD-PL"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-IFRS17\Auto\OD\Partial Loss"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-OD-TotalLoss-MotorCycle"
+        .Fields("New Name").Value = "Auto-OD-TL-MCyc"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-IFRS17\Auto\OD\Total Loss\Motorcycle"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-OD-TotalLoss-NonMotorCycle"
+        .Fields("New Name").Value = "Auto-OD-TL-NonMCyc"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-IFRS17\Auto\OD\Total Loss\Non Motorcycle"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-TP"
+        .Fields("New Name").Value = "Auto-TP"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-IFRS17\Auto\TP"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto"
+        .Fields("New Name").Value = "Auto"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-IFRS17\Auto"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Engineering"
+        .Fields("New Name").Value = "Engineering"
+        .Fields("Column EP").Value = 19
+        .Fields("ResQ Path").Value = "Net-IFRS17\Engineering"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Fire"
+        .Fields("New Name").Value = "Fire"
+        .Fields("Column EP").Value = 18
+        .Fields("ResQ Path").Value = "Net-IFRS17\Fire"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-Other"
+        .Fields("New Name").Value = "Marine-Other"
+        .Fields("Column EP").Value = 17
+        .Fields("ResQ Path").Value = "Net-IFRS17\Marine\Non E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-ECommerce"
+        .Fields("New Name").Value = "Marine-ECommerce"
+        .Fields("Column EP").Value = 16
+        .Fields("ResQ Path").Value = "Net-IFRS17\Marine\E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Liability"
+        .Fields("New Name").Value = "Liability"
+        .Fields("Column EP").Value = 20
+        .Fields("ResQ Path").Value = "Net-IFRS17\Liability"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Retail"
+        .Fields("New Name").Value = "PA-Retail"
+        .Fields("Column EP").Value = 21
+        .Fields("ResQ Path").Value = "Net-IFRS17\PA\Retail"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Commercial"
+        .Fields("New Name").Value = "PA-Commercial"
+        .Fields("Column EP").Value = 22
+        .Fields("ResQ Path").Value = "Net-IFRS17\PA\Commercial"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Commercial"
+        .Fields("New Name").Value = "Travel-Commercial"
+        .Fields("Column EP").Value = 24
+        .Fields("ResQ Path").Value = "Net-IFRS17\Travel\Commercial"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Retail"
+        .Fields("New Name").Value = "Travel-Retail"
+        .Fields("Column EP").Value = 23
+        .Fields("ResQ Path").Value = "Net-IFRS17\Travel\Retail"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Trade Credit"
+        .Fields("New Name").Value = "Trade Credit"
+        .Fields("Column EP").Value = 25
+        .Fields("ResQ Path").Value = "Net-IFRS17\Trade Credit"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various"
+        .Fields("New Name").Value = "Various"
+        .Fields("Column EP").Value = 26
+        .Fields("ResQ Path").Value = "Net-IFRS17\Various\Non E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Health"
+        .Fields("New Name").Value = "Health"
+        .Fields("Column EP").Value = 28
+        .Fields("ResQ Path").Value = "Net-IFRS17\Health"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various-ECommerce"
+        .Fields("New Name").Value = "Various-ECommerce"
+        .Fields("Column EP").Value = 30
+        .Fields("ResQ Path").Value = "Net-IFRS17\Various\Commerce"
+        .Update
+        
+    End With
+    
+    Set SheetsListNet = rs
+End Function
+
+Private Function SheetsListNetXL() As ADODB.Recordset
+    Dim rs As ADODB.Recordset
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "Sheet Name CL", adVarChar, 200
+        .Fields.Append "New Name", adVarChar, 200
+        .Fields.Append "Column EP", adInteger
+        .Fields.Append "ResQ Path", adVarChar, 200
+        .Open
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-OD-PartialLoss"
+        .Fields("New Name").Value = "Auto-OD-PL"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Auto\OD\Partial Loss"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-OD-TotalLoss-MotorCycle"
+        .Fields("New Name").Value = "Auto-OD-TL-MCyc"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Auto\OD\Total Loss\Motorcycle"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-OD-TotalLoss-NonMotorCycle"
+        .Fields("New Name").Value = "Auto-OD-TL-NonMCyc"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Auto\OD\Total Loss\Non Motorcycle"
+        .Update
+
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto-TP"
+        .Fields("New Name").Value = "Auto-TP"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Auto\TP"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Auto"
+        .Fields("New Name").Value = "Auto"
+        .Fields("Column EP").Value = 15
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Auto"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Engineering"
+        .Fields("New Name").Value = "Engineering"
+        .Fields("Column EP").Value = 19
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Engineering"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Fire"
+        .Fields("New Name").Value = "Fire"
+        .Fields("Column EP").Value = 18
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Fire"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-Other"
+        .Fields("New Name").Value = "Marine-Other"
+        .Fields("Column EP").Value = 17
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Marine\Non E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Marine-ECommerce"
+        .Fields("New Name").Value = "Marine-ECommerce"
+        .Fields("Column EP").Value = 16
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Marine\E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Liability"
+        .Fields("New Name").Value = "Liability"
+        .Fields("Column EP").Value = 20
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Liability"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Retail"
+        .Fields("New Name").Value = "PA-Retail"
+        .Fields("Column EP").Value = 21
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\PA\Retail"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "PA-Commercial"
+        .Fields("New Name").Value = "PA-Commercial"
+        .Fields("Column EP").Value = 22
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\PA\Commercial"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Commercial"
+        .Fields("New Name").Value = "Travel-Commercial"
+        .Fields("Column EP").Value = 24
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Travel\Commercial"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Travel-Retail"
+        .Fields("New Name").Value = "Travel-Retail"
+        .Fields("Column EP").Value = 23
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Travel\Retail"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Trade Credit"
+        .Fields("New Name").Value = "Trade Credit"
+        .Fields("Column EP").Value = 25
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Trade Credit"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various"
+        .Fields("New Name").Value = "Various"
+        .Fields("Column EP").Value = 26
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Various\Non E-Commerce"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Health"
+        .Fields("New Name").Value = "Health"
+        .Fields("Column EP").Value = 28
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Health"
+        .Update
+        
+        .AddNew
+        .Fields("Sheet Name CL").Value = "Various-ECommerce"
+        .Fields("New Name").Value = "Various-ECommerce"
+        .Fields("Column EP").Value = 30
+        .Fields("ResQ Path").Value = "Net-wo-XL-IFRS17\Various\Commerce"
+        .Update
+        
+    End With
+    
+    Set SheetsListNetXL = rs
+End Function
+
+
+Private Function LinkList() As ADODB.Recordset
+    Dim rs As ADODB.Recordset
+    Set rs = New ADODB.Recordset
+    
+    With rs
+        Set .ActiveConnection = Nothing
+        .CursorLocation = adUseClient
+        .Fields.Append "Reserve Code", adVarChar, 200
+        .Fields.Append "Sheet Code", adVarChar, 200
+        .Open
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "A"
+        .Fields("Sheet Code").Value = "Auto"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "C"
+        .Fields("Sheet Code").Value = "Trade Credit"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "E"
+        .Fields("Sheet Code").Value = "Engineering"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "F"
+        .Fields("Sheet Code").Value = "Fire"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "L"
+        .Fields("Sheet Code").Value = "Liability"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "ME"
+        .Fields("Sheet Code").Value = "Marine-ECommerce"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "MO"
+        .Fields("Sheet Code").Value = "Marine-Other"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "P"
+        .Fields("Sheet Code").Value = "PA-Retail"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "S"
+        .Fields("Sheet Code").Value = "Health"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "T"
+        .Fields("Sheet Code").Value = "Travel-Retail"
+        .Update
+    
+        .AddNew
+        .Fields("Reserve Code").Value = "VE"
+        .Fields("Sheet Code").Value = "Various-ECommerce"
+        .Update
+        
+        .AddNew
+        .Fields("Reserve Code").Value = "VO"
+        .Fields("Sheet Code").Value = "Various"
+        .Update
+        
+    End With
+    
+    Set LinkList = rs
+End Function
+
+Private Function FormatTime(ByVal seconds As Double) As String
+    Dim hours As Long
+    Dim minutes As Long
+    Dim remainingSeconds As Long
+    
+    ' Calculate hours, minutes, and remaining seconds
+    hours = seconds \ 3600
+    seconds = seconds Mod 3600
+    minutes = seconds \ 60
+    remainingSeconds = seconds Mod 60
+    
+    ' Format the time as "hour:minute:second"
+    FormatTime = Format(hours, "00") & ":" & Format(minutes, "00") & ":" & Format(remainingSeconds, "00")
+End Function
+Private Sub SwitchOff(bSwitchOff As Boolean)
+    Dim ws As Worksheet
+    
+    With Application
+        If bSwitchOff Then
+            'OFF
+            .Calculation = xlCalculationManual
+            .ScreenUpdating = False
+            .EnableAnimations = False
+         
+            'switch off display pagebreaks for all worksheets
+            For Each ws In ThisWorkbook.Worksheets
+                ws.DisplayPageBreaks = False
+            Next ws
+        Else
+            'ON
+            .Calculation = xlCalculationAutomatic
+            .ScreenUpdating = True
+            .EnableAnimations = True
+        End If
+    End With
+End Sub
+
+
+
+
